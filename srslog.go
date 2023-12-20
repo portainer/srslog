@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -34,7 +33,7 @@ func New(priority Priority, tag string) (w *Writer, err error) {
 // tag.
 // If network is empty, Dial will connect to the local syslog server.
 func Dial(network, raddr string, priority Priority, tag string) (*Writer, error) {
-	return DialWithTLSConfig(network, raddr, priority, tag, nil)
+	return DialWithTLSConfig(network, raddr, priority, tag, nil, nil)
 }
 
 // ErrNilDialFunc is returned from DialWithCustomDialer when a nil DialFunc is passed,
@@ -56,32 +55,32 @@ func DialWithCustomDialer(network, raddr string, priority Priority, tag string, 
 // DialWithTLSCertPath establishes a secure connection to a log daemon by connecting to
 // address raddr on the specified network. It uses certPath to load TLS certificates and configure
 // the secure connection.
-func DialWithTLSCertPath(network, raddr string, priority Priority, tag, certPath string) (*Writer, error) {
-	serverCert, err := ioutil.ReadFile(certPath)
+func DialWithTLSCertPath(network, raddr string, priority Priority, tag, certPath string, customDial DialFunc) (*Writer, error) {
+	serverCert, err := os.ReadFile(certPath)
 	if err != nil {
 		return nil, err
 	}
 
-	return DialWithTLSCert(network, raddr, priority, tag, serverCert)
+	return DialWithTLSCert(network, raddr, priority, tag, serverCert, customDial)
 }
 
 // DialWIthTLSCert establishes a secure connection to a log daemon by connecting to
 // address raddr on the specified network. It uses serverCert to load a TLS certificate
 // and configure the secure connection.
-func DialWithTLSCert(network, raddr string, priority Priority, tag string, serverCert []byte) (*Writer, error) {
+func DialWithTLSCert(network, raddr string, priority Priority, tag string, serverCert []byte, customDial DialFunc) (*Writer, error) {
 	pool := x509.NewCertPool()
 	pool.AppendCertsFromPEM(serverCert)
 	config := tls.Config{
 		RootCAs: pool,
 	}
 
-	return DialWithTLSConfig(network, raddr, priority, tag, &config)
+	return DialWithTLSConfig(network, raddr, priority, tag, &config, customDial)
 }
 
 // DialWithTLSConfig establishes a secure connection to a log daemon by connecting to
 // address raddr on the specified network. It uses tlsConfig to configure the secure connection.
-func DialWithTLSConfig(network, raddr string, priority Priority, tag string, tlsConfig *tls.Config) (*Writer, error) {
-	return dialAllParameters(network, raddr, priority, tag, tlsConfig, nil)
+func DialWithTLSConfig(network, raddr string, priority Priority, tag string, tlsConfig *tls.Config, customDial DialFunc) (*Writer, error) {
+	return dialAllParameters(network, raddr, priority, tag, tlsConfig, customDial)
 }
 
 // implementation of the various functions above
