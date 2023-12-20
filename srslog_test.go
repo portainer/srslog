@@ -288,7 +288,7 @@ func TestDialFails(t *testing.T) {
 }
 
 func TestDialTLSFails(t *testing.T) {
-	w, err := DialWithTLSCertPath("tcp+tls", "127.0.0.1:0", LOG_ERR, "syslog_test", "test/nocertfound.pem")
+	w, err := DialWithTLSCertPath("tcp+tls", "127.0.0.1:0", LOG_ERR, "syslog_test", "test/nocertfound.pem", nil)
 	if w != nil {
 		t.Fatalf("Should not have a writer")
 	}
@@ -379,7 +379,7 @@ func TestTLSPathWrite(t *testing.T) {
 			defer srvWG.Wait()
 			defer sock.Close()
 
-			l, err := DialWithTLSCertPath("tcp+tls", addr, test.pri, test.pre, "test/cert.pem")
+			l, err := DialWithTLSCertPath("tcp+tls", addr, test.pri, test.pre, "test/cert.pem", nil)
 			if err != nil {
 				t.Fatalf("syslog.Dial() failed: %v", err)
 			}
@@ -426,7 +426,7 @@ func TestTLSCertWrite(t *testing.T) {
 				t.Fatalf("cold not read cert: %v", err)
 			}
 
-			l, err := DialWithTLSCert("tcp+tls", addr, test.pri, test.pre, cert)
+			l, err := DialWithTLSCert("tcp+tls", addr, test.pri, test.pre, cert, nil)
 			if err != nil {
 				t.Fatalf("syslog.Dial() failed: %v", err)
 			}
